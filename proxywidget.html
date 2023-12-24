@@ -1,124 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF8"> 
-    <script>
-        var body = document.querySelector("body");
-        fetch("defaultwidget.html")
-            .then((res) => res.text())
-            .then((original) => {
-                // add defaultwidget.html
-                var originalhtml = document.createElement("html");
-                originalhtml.innerHTML = original;
+	<head>
+		<meta charset="UTF8" />
+		<script>
+			var config = {};
+			fetch("./config.json")
+				.then((res) => res.text())
+				.then((text) => {
+					config = JSON.parse(text);
+				})
+				.catch((e) => console.error(e));
 
-                // add it's body
-                document.body.innerHTML = originalhtml.querySelector("body").innerHTML
+			var body = document.querySelector("body");
+			fetch("./defaultwidget.html")
+				.then((res) => res.text())
+				.then((original) => {
+					// add defaultwidget.html
+					var originalhtml = document.createElement("html");
+					originalhtml.innerHTML = original;
 
-                // append it's js
-                var originaljs = document.createElement("script");
-                originaljs.innerHTML = originalhtml.querySelector("script").innerHTML
-                originaljs.innerHTML = originaljs.innerHTML.replace(/cover_url/gm, "cover"); // Remove or uncomment this line if you dont use youtube music
-                document.head.appendChild(originaljs);
+					// add it's body
+					document.body.innerHTML = originalhtml.querySelector("body").innerHTML;
 
-                // we're going to ignore it's css since we're replacing it anyway, if you want to use default just uncomment this
-                // var originalcss = document.createElement("style");
-                // originalcss.innerHTML = originalhtml.querySelector("style").innerHTML
-                // document.head.appendChild(originalcss);
+					// append it's js
+					var originaljs = document.createElement("script");
+					originaljs.innerHTML = originalhtml.querySelector("script").innerHTML;
 
-                const imported = new Event("imported");
-                window.dispatchEvent(imported);
-            })
-            .catch((e) => console.error(e));
+					// Youtube music uses cover instead of cover_url
+					if (config.usingyoutubemusic) {
+						originaljs.innerHTML = originaljs.innerHTML.replace(/cover_url/gm, "cover");
+					}
 
-        window.addEventListener('imported', function() {
-            // Css Load script from my site
-            function addCss(fileName) {
-                // adds css to head
-                var link = document.createElement("link");
-                link.type = "text/css";
-                link.rel = "stylesheet";
-                link.href = fileName;
-                document.head.appendChild(link);
-            }
+					document.head.appendChild(originaljs);
 
-            addCss("obsytwidget.css");
+					// we're going to ignore it's css since we're replacing it anyway, if you want to use default just uncomment this
+					// var originalcss = document.createElement("style");
+					// originalcss.innerHTML = originalhtml.querySelector("style").innerHTML
+					// document.head.appendChild(originalcss);
 
-            // add a box around the title for the emojis
-            var title = document.body.querySelector("#title");
-            title.outerHTML = '<span id="titlebox">🎵<p id="title">&nbsp;</p>🎵</span>'
+					// Css Load script from my site
+					function addCss(fileName) {
+						var link = document.createElement("link");
+						link.type = "text/css";
+						link.rel = "stylesheet";
+						link.href = fileName;
+						document.head.appendChild(link);
+					}
+					// Css Load modified script from my site
+					function addJS(fileName) {
+						var script = document.createElement("script");
+						script.type = "text/javascript";
+						script.src = fileName;
+						document.head.appendChild(script);
+					}
 
-            // add a box around the artist for the emojis
-            var artist = document.body.querySelector("#artist");
-            artist.outerHTML = '<span id="artistbox">🎤<p id="artist">&nbsp;</p>🎤</span>'
-
-            // make the timeline text 0:00 - 0:00 copy progress colors
-            var observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutationRecord) {
-                    changecolors()
-                });
-            });
-            // comment this out to disable color matching text
-            observer.observe(document.querySelector("#progress"), { attributes : true, attributeFilter : ['style'] });
-
-            function changecolors() {
-                var bgcolor = rgba2hex(document.querySelector("#progress").style.backgroundColor)
-                var inbgcolor = invertColor(bgcolor.slice(0, -2)) + bgcolor.slice(-2)
-                document.querySelectorAll("#length, #time-passed").forEach(element => {
-                    element.style = "color: " + bgcolor + "; text-shadow: 0 0 7px " + inbgcolor + ", 0 0 10px " + inbgcolor
-                });
-            }
-
-            // stolen from https://stackoverflow.com/questions/49974145/how-to-convert-rgba-to-hex-color-code-using-javascript
-            function rgba2hex(orig) {
-                var a, isPercent,
-                rgb = orig.replace(/\s/g, '').match(/^rgba?\((\d+),(\d+),(\d+),?([^,\s)]+)?/i),
-                alpha = (rgb && rgb[4] || "").trim(),
-                hex = rgb ?
-                (rgb[1] | 1 << 8).toString(16).slice(1) +
-                (rgb[2] | 1 << 8).toString(16).slice(1) +
-                (rgb[3] | 1 << 8).toString(16).slice(1) : orig;
-
-                if (alpha !== "") {
-                    a = alpha;
-                } else {
-                    a = 0o1;
-                }
-                // multiply before convert to HEX
-                a = ((a * 255) | 1 << 8).toString(16).slice(1)
-                hex = hex + a;
-
-                return "#" + hex;
-            }
-
-            // stolen from https://stackoverflow.com/questions/35969656/how-can-i-generate-the-opposite-color-according-to-current-color
-            function invertColor(hex) {
-                if (hex.indexOf('#') === 0) {
-                    hex = hex.slice(1);
-                }
-                // convert 3-digit hex to 6-digits.
-                if (hex.length === 3) {
-                    hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-                }
-                if (hex.length !== 6) {
-                    throw new Error('Invalid HEX color.');
-                }
-                // invert color components
-                var r = (255 - parseInt(hex.slice(0, 2), 16)).toString(16),
-                    g = (255 - parseInt(hex.slice(2, 4), 16)).toString(16),
-                    b = (255 - parseInt(hex.slice(4, 6), 16)).toString(16);
-                // pad each with zeros and return
-                return '#' + padZero(r) + padZero(g) + padZero(b);
-            }
-
-            function padZero(str, len) {
-                len = len || 2;
-                var zeros = new Array(len).join('0');
-                return (zeros + str).slice(-len);
-            }
-        });
-
-    </script>
-</head>
-<body>
-</body>
+					config.customjs.forEach(addJS);
+					config.customcss.forEach(addCss);
+				})
+				.catch((e) => console.error(e));
+		</script>
+	</head>
+	<body></body>
 </html>
