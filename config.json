@@ -1,4 +1,5 @@
 {
+	"disablepadding": false,
 	"usingyoutubemusic": true,
 	"comment": "Below are lists, you can use multiple imports by separating with a , (comma)",
 	"customcss": ["./customwidget.css"],
