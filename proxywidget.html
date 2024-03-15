@@ -3,24 +3,41 @@
 	<head>
 		<meta charset="UTF8" />
 		<script>
+			var defaultconfig = {
+				originalhtml: true,
+				originaljs: true,
+				originalcss: false,
+				disablepadding: false,
+				usingyoutubemusic: true,
+				style: ["./DefaultWidget"],
+			};
 			var config = {};
 			fetch("./config.json")
 				.then((res) => res.text())
 				.then((text) => {
 					config = JSON.parse(text);
+					if (config.originalhtml == null || config.originaljs == null || config.originalcss == null || config.disablepadding == null || config.usingyoutubemusic == null || config.style == null) {
+						console.error("Something went wrong loading the config, loading default config");
+						config = defaultconfig;
+					}
 				})
-				.catch((e) => console.error(e));
+				.catch((e) => {
+					console.error("Error happened while loading config.json, using default config [" + e + "]");
+					config = defaultconfig;
+				});
 
 			var body = document.querySelector("body");
-			fetch("./defaultwidget.html")
+			fetch("./tunawidget.html")
 				.then((res) => res.text())
 				.then((original) => {
-					// add defaultwidget.html
+					// add tunawidget.html
 					var originalhtml = document.createElement("html");
 					originalhtml.innerHTML = original;
 
 					// add it's body
-					document.body.innerHTML = originalhtml.querySelector("body").innerHTML;
+					if (config.originalhtml) {
+						document.body.innerHTML = originalhtml.querySelector("body").innerHTML;
+					}
 
 					// append it's js
 					var originaljs = document.createElement("script");
@@ -35,31 +52,48 @@
 						document.querySelector(".widget").style = "padding: 0; margin: 0";
 					}
 
-					document.head.appendChild(originaljs);
-
-					// we're going to ignore it's css since we're replacing it anyway, if you want to use default just uncomment this
-					// var originalcss = document.createElement("style");
-					// originalcss.innerHTML = originalhtml.querySelector("style").innerHTML
-					// document.head.appendChild(originalcss);
-
-					// Css Load script from my site
-					function addCss(fileName) {
-						var link = document.createElement("link");
-						link.type = "text/css";
-						link.rel = "stylesheet";
-						link.href = fileName;
-						document.head.appendChild(link);
-					}
-					// Css Load modified script from my site
-					function addJS(fileName) {
-						var script = document.createElement("script");
-						script.type = "text/javascript";
-						script.src = fileName;
-						document.head.appendChild(script);
+					if (config.originaljs) {
+						document.head.appendChild(originaljs);
 					}
 
-					config.customjs.forEach(addJS);
-					config.customcss.forEach(addCss);
+					if (config.originalcss) {
+						var originalcss = document.createElement("style");
+						originalcss.innerHTML = originalhtml.querySelector("style").innerHTML;
+						document.head.appendChild(originalcss);
+					}
+
+					// Add load scripts to window to be used globally aka window.WidgetObj.AddCSS/JS/Style()
+					(function (window) {
+						// Css Load script from my site
+						function AddCSS(fileName) {
+							var link = document.createElement("link");
+							link.type = "text/css";
+							link.rel = "stylesheet";
+							link.href = fileName;
+							document.head.appendChild(link);
+						}
+
+						// Css Load modified script from my site
+						function AddJS(fileName) {
+							var script = document.createElement("script");
+							script.type = "text/javascript";
+							script.src = fileName;
+							document.head.appendChild(script);
+						}
+
+						function AddStyle(styleLocation) {
+							AddJS(styleLocation + "/index.js");
+							AddCSS(styleLocation + "/index.css");
+						}
+
+						window.WidgetObj = {
+							AddCSS: AddCSS,
+							AddJS: AddJS,
+							AddStyle: AddStyle,
+						};
+					})(window);
+
+					config.style.forEach(window.WidgetObj.AddStyle);
 				})
 				.catch((e) => console.error(e));
 		</script>
