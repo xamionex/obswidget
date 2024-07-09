@@ -534,10 +534,10 @@
 					const data = await fetchData(); // Call your data fetching function
 					// Check for data changes
 					// Update UI elements based on the fetched data
-					if (!data.cover || data.cover == undefined) {
-						updateCoverAndProgressColor(data.cover_url);
-					} else {
+					if (!data.cover_url || data.cover_url == undefined) {
 						updateCoverAndProgressColor(data.cover);
+					} else {
+						updateCoverAndProgressColor(data.cover_url);
 					}
 					updateTitle(data.title);
 					updateArtistAndAlbum(data.artists, data.album);
