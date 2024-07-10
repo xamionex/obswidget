@@ -89,7 +89,7 @@
 			transform: translate(-50%, -50%);
 			width: 100%;
 			height: 100%;
-			transition: opacity var(--timeout-time) ease-in-out;
+			transition: all var(--timeout-time) ease-in-out;
 			aspect-ratio: 1;
 			background-position: center;
 			background-size: cover;
@@ -115,7 +115,7 @@
 
 		#title,
 		#artist {
-			transition: opacity var(--timeout-time) ease-in-out;
+			transition: all var(--timeout-time) ease-in-out;
 		}
 
 		p,
@@ -132,7 +132,7 @@
 			width: 100%;
 			margin-top: 5px;
 			border-radius: 2px;
-			transition: background-color var(--timeout-time) ease-in-out;
+			transition: all var(--timeout-time) ease-in-out;
 		}
 
 		#progressbar {
@@ -371,17 +371,17 @@
 			const titleChanged = lastTitle !== title;
 			element = document.getElementById("title");
 
-			if ((titleChanged && title && element.style.opacity == 1) || lastTitle === undefined) {
-				element.style.opacity != 0 ? (element.style.opacity = 0) : "";
-				sleep(config.Widget.songRefresh).then(() => {
+			if ((titleChanged && title) || lastTitle === undefined) {
+				element.style.opacity = 0;
+				if (element.getAnimations().length == 0) {
 					element.innerText = title ? title : PAUSED_PLACEHOLDER; // Use placeholder if no title
 					lastTitle = title;
 					if (isOverflownText(element)) {
 						return;
 					}
 					element.classList.remove("marquee");
-					element.style.opacity != 1 ? (element.style.opacity = 1) : "";
-				});
+					element.style.opacity = 1;
+				}
 			}
 		}
 
@@ -398,9 +398,9 @@
 
 			const fullText = formattedArtists.length > 0 ? (album?.trim() ? `${formattedArtists} - ${album.trim()}` : formattedArtists) : album?.trim();
 
-			element.style.opacity != 0 ? (element.style.opacity = 0) : "";
+			element.style.opacity = 0;
 
-			sleep(config.Widget.songRefresh).then(() => {
+			if (element.getAnimations().length == 0) {
 				element.innerText = fullText || ""; // Set empty string if fullText is nullish
 				lastArtist = formattedArtists;
 				lastAlbum = album;
@@ -408,8 +408,8 @@
 					return;
 				}
 				element.classList.remove("marquee");
-				element.style.opacity != 1 ? (element.style.opacity = 1) : "";
-			});
+				element.style.opacity = 1;
+			}
 		}
 
 		async function fetchWithCors(imageUrl) {
@@ -458,41 +458,42 @@
 			reader.onloadend = async () => {
 				if (reader.result) {
 					if (!lastCoverData || reader.result !== lastCoverData) {
+						coverOverlayElement = document.getElementById("next-cover");
+						coverElement = document.getElementById("cover");
+
 						// Update cover with cache busting
-						updateCover(`url(${cover}?${new Date().getTime()})`);
-						lastCoverData = reader.result;
-
-						try {
-							const rgb = await getAverageBlobRGB(blob);
-
-							if ((calculate_brightness(rgb) < 0.6 && calculate_brightness(rgb) > 0.3) || config.Widget.alwaysBrightenColors) {
-								// Brighten dark colors
-								const brightenedRgb = increase_brightness(rgb, 100);
-								document.getElementById("progress").style.backgroundColor = `rgb(${brightenedRgb[0]}, ${brightenedRgb[1]}, ${brightenedRgb[2]})`;
-							} else {
-								document.getElementById("progress").style.backgroundColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-							}
-						} catch (error) {
-							console.error("Error fetching image colors:", error);
+						newCover = `url(${cover}?${new Date().getTime()})`;
+						coverOverlayElement.style.backgroundImage = newCover;
+						coverOverlayElement.style.opacity = 1;
+						if (coverOverlayElement.getAnimations().length == 0) {
+							coverElement.style.backgroundImage = newCover;
+							coverOverlayElement.style.backgroundImage = "";
+							coverOverlayElement.style.opacity = 0;
 						}
+
+						lastCoverData = reader.result;
 					}
 				} else {
 					console.error("Failed to read image data.");
 					document.getElementById("cover").style.backgroundImage = `url(${placeholder})`;
 				}
+
+				// check cover and update colors if changed
+				if (document.getElementById("cover").getAnimations().length == 0) {
+					// Update progress colors
+					const rgb = await getAverageBlobRGB(blob);
+
+					if ((calculate_brightness(rgb) < 0.6 && calculate_brightness(rgb) > 0.3) || config.Widget.alwaysBrightenColors) {
+						// Brighten dark colors
+						const brightenedRgb = increase_brightness(rgb, 100);
+						document.getElementById("progress").style.backgroundColor = `rgb(${brightenedRgb[0]}, ${brightenedRgb[1]}, ${brightenedRgb[2]})`;
+					} else {
+						document.getElementById("progress").style.backgroundColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+					}
+				}
 			};
 
 			reader.readAsDataURL(blob);
-		}
-
-		function updateCover(cover) {
-			document.getElementById("next-cover").style.backgroundImage = cover;
-			document.getElementById("next-cover").style.opacity = 1;
-			sleep(config.Widget.songRefresh).then(() => {
-				document.getElementById("cover").style.backgroundImage = cover;
-				document.getElementById("next-cover").style.backgroundImage = "";
-				document.getElementById("next-cover").style.opacity = 0;
-			});
 		}
 
 		async function getAverageBlobRGB(blob) {
@@ -556,19 +557,18 @@
 
 		(async () => {
 			try {
+				// Initialize opacity elements
 				const fetchDataLoop = async () => {
-					const data = await fetchData(); // Call your data fetching function
-					// Check for data changes
-					// Update UI elements based on the fetched data
-					updateCoverAndProgressColor([data.cover_url, data.cover, data.cover_path, data.album_url]);
+					const data = await fetchData();
+
+					updateCoverAndProgressColor([data.cover, data.cover_url, data.cover_path, data.album_url]);
 					updateTitle(data.title);
 					updateArtistAndAlbum(data.artists, data.album);
 					updateProgress(data.duration, data.progress);
-					// Update other UI elements based on your data structure (if any)
 					lastData = data;
 				};
 
-				setInterval(await fetchDataLoop, config.Widget.songRefresh); // Start the refresh loop
+				setInterval(await fetchDataLoop, config.Widget.songRefresh);
 			} catch (error) {
 				console.error("Error fetching data:", error);
 			}
@@ -636,9 +636,9 @@
 				}
 
 				widget.style = `
-				${borderDirection}: 4px solid !important;
-				border-image: linear-gradient(90deg, ${bgcolor} 0%, ${bgcolor} ${progwidth}%, ${inbgcolor} ${progwidth + config.Compact.progressBarBlend}%, ${inbgcolor} 100%) 10;
-				`;
+						${borderDirection}: 4px solid !important;
+						border-image: linear-gradient(90deg, ${bgcolor} 0%, ${bgcolor} ${progwidth}%, ${inbgcolor} ${progwidth + config.Compact.progressBarBlend}%, ${inbgcolor} 100%) 10;
+						`;
 			} else {
 				document.querySelector("#widgetborder").style = "";
 			}
@@ -707,13 +707,13 @@
 				}
 
 				element.style.textShadow = `
-				0 0 4px ${readabilityColor},
-				0 0 5px ${readabilityColor},
-				0 0 6px ${readabilityColor},
-				0 0 7px ${readabilityColor},
-				0 0 10px ${inbgcolor},
-				0 0 10px ${inbgcolor},
-				0 0 10px ${inbgcolor}`;
+						0 0 4px ${readabilityColor},
+						0 0 5px ${readabilityColor},
+						0 0 6px ${readabilityColor},
+						0 0 7px ${readabilityColor},
+						0 0 10px ${inbgcolor},
+						0 0 10px ${inbgcolor},
+						0 0 10px ${inbgcolor}`;
 			});
 		}
 
@@ -735,17 +735,17 @@
 			const hasMarquee = element.classList.contains("marquee");
 
 			if (!isOverflown && hasMarquee) {
-				element.style.opacity != 0 ? (element.style.opacity = 0) : "";
-				sleep(config.Widget.songRefresh).then(function () {
-					element.style.opacity != 1 ? (element.style.opacity = 1) : "";
+				element.style.opacity = 0;
+				if (element.getAnimations().length == 0) {
+					element.style.opacity = 1;
 					element.classList.remove("marquee");
-				});
+				}
 			} else if (isOverflown && !hasMarquee) {
-				element.style.opacity != 0 ? (element.style.opacity = 0) : "";
-				sleep(config.Widget.songRefresh).then(function () {
-					element.style.opacity != 1 ? (element.style.opacity = 1) : "";
+				element.style.opacity = 0;
+				if (element.getAnimations().length == 0) {
+					element.style.opacity = 1;
 					element.classList.add("marquee");
-				});
+				}
 			}
 		}
 
