@@ -225,6 +225,7 @@
 		var lastTitle;
 		var lastArtist;
 		var lastAlbum;
+		var erroredUrls = [];
 
 		var defaultConfig = {
 			Widget: {
@@ -413,13 +414,11 @@
 		}
 
 		async function fetchWithCors(imageUrl) {
+			if (erroredUrls.indexOf(imageUrl) != -1) return { blob: null, success: false };
 			try {
 				const response = await fetch(imageUrl, {
-					mode: "cors", // Explicitly set CORS mode for anonymous requests
+					mode: "cors", // Enables CORS for cross-origin requests
 					cache: "no-cache", // Prevent caching
-					headers: {
-						"Access-Control-Request-Method": "GET", // Required for preflight requests
-					},
 				});
 
 				const blob = await response.blob(); // Get the image data as a Blob
@@ -427,7 +426,9 @@
 				return { blob: blob, success: true };
 			} catch (e) {
 				// Most likely due to CORS, below is code for trying to get from original then secondaries
-				// console.warn("CORS error during image fetch:", imageUrl);
+				console.warn("CORS error during image fetch:", imageUrl);
+				// Add url to the blacklist
+				erroredUrls.push(imageUrl);
 				return { blob: null, success: false };
 			}
 		}
