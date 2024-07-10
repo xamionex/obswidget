@@ -374,7 +374,7 @@
 
 			if ((titleChanged && title) || lastTitle === undefined) {
 				element.style.opacity = 0;
-				if (element.getAnimations().length == 0) {
+				if (element.getAnimations().length == 0 || (element.classList.contains("marquee") && element.getAnimations().length == 1)) {
 					element.innerText = title ? title : PAUSED_PLACEHOLDER; // Use placeholder if no title
 					lastTitle = title;
 					if (isOverflownText(element)) {
@@ -401,7 +401,7 @@
 
 			element.style.opacity = 0;
 
-			if (element.getAnimations().length == 0) {
+			if (element.getAnimations().length == 0 || (element.classList.contains("marquee") && element.getAnimations().length == 1)) {
 				element.innerText = fullText || ""; // Set empty string if fullText is nullish
 				lastArtist = formattedArtists;
 				lastAlbum = album;
@@ -735,15 +735,15 @@
 			const isOverflown = isOverflownText(element);
 			const hasMarquee = element.classList.contains("marquee");
 
-			if (!isOverflown && hasMarquee) {
+			if (!isOverflown && hasMarquee && element.getAnimations().length < 2) {
 				element.style.opacity = 0;
-				if (element.getAnimations().length == 0) {
+				if (element.getAnimations().length < 2) {
 					element.style.opacity = 1;
 					element.classList.remove("marquee");
 				}
 			} else if (isOverflown && !hasMarquee) {
 				element.style.opacity = 0;
-				if (element.getAnimations().length == 0) {
+				if (element.getAnimations().length < 1) {
 					element.style.opacity = 1;
 					element.classList.add("marquee");
 				}
