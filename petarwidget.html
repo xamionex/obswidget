@@ -563,7 +563,7 @@
 					const data = await fetchData(); // Call your data fetching function
 					// Check for data changes
 					// Update UI elements based on the fetched data
-					updateCoverAndProgressColor([data.cover, data.cover_path, data.cover_url, data.album_url]);
+					updateCoverAndProgressColor([data.cover_url, data.cover, data.cover_path, data.album_url]);
 					updateTitle(data.title);
 					updateArtistAndAlbum(data.artists, data.album);
 					updateProgress(data.duration, data.progress);
