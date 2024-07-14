@@ -1,15 +1,16 @@
 // add a box around the title for the emojis
 var title = document.body.querySelector("#title");
-title.outerHTML = '<span id="titlebox">🎵<p id="title">&nbsp;</p>🎵</span>';
+title.outerHTML = '<span id="titlebox"><span>🎵</span><div id="titlegradient"><p id="title">&nbsp;</p></div><span>🎵</span></span>';
 
 // add a box around the artist for the emojis
 var artist = document.body.querySelector("#artist");
-artist.outerHTML = '<span id="artistbox">🎤<p id="artist">&nbsp;</p>🎤</span>';
+artist.outerHTML = '<span id="artistbox"><span>🎤</span><div id="artistgradient"><p id="artist">&nbsp;</p></div><span>🎤</span></span>';
 
 // make the timeline text 0:00 - 1:30 copy progress colors
 var observer = new MutationObserver(function (mutations) {
 	mutations.forEach(function (mutationRecord) {
 		changecolors();
+		checktextwrap();
 	});
 });
 
@@ -19,9 +20,27 @@ observer.observe(document.querySelector("#progress"), { attributes: true, attrib
 function changecolors() {
 	var bgcolor = rgba2hex(document.querySelector("#progress").style.backgroundColor);
 	var inbgcolor = invertColor(bgcolor.slice(0, -2)) + bgcolor.slice(-2);
-	document.querySelectorAll("#length, #time-passed").forEach((element) => {
+	document.querySelectorAll("#length, #time-passed, #title, #artist").forEach((element) => {
 		element.style = "color: " + bgcolor + "; text-shadow: 0 0 7px " + inbgcolor + ", 0 0 10px " + inbgcolor;
 	});
+}
+
+function checktextwrap() {
+	var titletext = document.querySelector("#title")
+	if (isOverflown(titletext)) {
+		titletext.classList.add("marquee")
+	}
+	var artisttext = document.querySelector("#artist")
+	if (isOverflown(artisttext)) {
+		artisttext.classList.add("marquee")
+	}
+}
+
+function isOverflown(element) {
+	const elementWidth = element.getBoundingClientRect().width
+	const parentWidth = element.parentElement.getBoundingClientRect().width
+
+	return elementWidth > parentWidth
 }
 
 // stolen from https://stackoverflow.com/questions/49974145/how-to-convert-rgba-to-hex-color-code-using-javascript
@@ -54,7 +73,8 @@ function invertColor(hex) {
 		hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
 	}
 	if (hex.length !== 6) {
-		throw new Error("Invalid HEX color.");
+		console.log("Invalid HEX color.");
+		return "#000000";
 	}
 	// invert color components
 	var r = (255 - parseInt(hex.slice(0, 2), 16)).toString(16),
