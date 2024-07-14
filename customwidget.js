@@ -29,10 +29,14 @@ function checktextwrap() {
 	var titletext = document.querySelector("#title")
 	if (isOverflown(titletext)) {
 		titletext.classList.add("marquee")
+	} else {
+		titletext.classList.remove("marquee")
 	}
 	var artisttext = document.querySelector("#artist")
 	if (isOverflown(artisttext)) {
 		artisttext.classList.add("marquee")
+	} else {
+		artisttext.classList.remove("marquee")
 	}
 }
 
