@@ -31,6 +31,10 @@
 						originaljs.innerHTML = originaljs.innerHTML.replace(/cover_url/gm, "cover");
 					}
 
+					if (config.disablepadding) {
+						document.querySelector(".widget").style = "padding: 0; margin: 0";
+					}
+
 					document.head.appendChild(originaljs);
 
 					// we're going to ignore it's css since we're replacing it anyway, if you want to use default just uncomment this
