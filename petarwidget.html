@@ -457,12 +457,10 @@
 
 			reader.onloadend = async () => {
 				if (reader.result) {
-					const base64Data = await encodeURIComponent(btoa(reader.result)); // Encode as base64 string
-
-					if (!lastCoverData || base64Data !== lastCoverData) {
+					if (!lastCoverData || reader.result !== lastCoverData) {
 						// Update cover with cache busting
 						updateCover(`url(${cover}?${new Date().getTime()})`);
-						lastCoverData = base64Data;
+						lastCoverData = reader.result;
 
 						try {
 							const rgb = await getAverageBlobRGB(blob);
