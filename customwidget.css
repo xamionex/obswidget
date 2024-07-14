@@ -62,8 +62,8 @@ span {
 
 #title,
 #titlebox {
-	font-size: xxx-large;
-	font-weight: bold;
+	font-size: 3rem;
+	font-weight: 1000;
 	text-align: center;
 	display: inline;
 }
@@ -76,7 +76,8 @@ span {
 }
 #artist,
 #artistbox {
-	font-size: xx-large;
+	font-size: 2.5rem;
+	font-weight: 900;
 	text-align: center;
 	display: inline;
 }
@@ -152,12 +153,16 @@ span {
 
 #length {
 	margin-left: 5px;
-	font-size: x-large;
 }
 
 #time-passed {
 	margin-right: 5px;
+}
+
+#length,
+#time-passed {
 	font-size: x-large;
+	font-weight: 900;
 }
 
 .blue-neon-text {
