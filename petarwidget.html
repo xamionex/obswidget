@@ -6,7 +6,7 @@
 		:root {
 			--background-color: #2c2c2c;
 			--border-color: #161616;
-			--refresh-time: 0.5s;
+			--timeout-time: 0.5s;
 			--scroll-time: 8s;
 		}
 
@@ -76,8 +76,9 @@
 			position: relative;
 			width: 100%;
 			height: 100%;
-			transition: background-image var(--refresh-time) ease-in-out;
+			transition: background-image var(--timeout-time) ease-in-out;
 			aspect-ratio: 1;
+			background-position: center;
 			background-size: cover;
 			background-repeat: no-repeat;
 		}
@@ -89,8 +90,9 @@
 			transform: translate(-50%, -50%);
 			width: 100%;
 			height: 100%;
-			transition: opacity var(--refresh-time) ease-in-out;
+			transition: opacity var(--timeout-time) ease-in-out;
 			aspect-ratio: 1;
+			background-position: center;
 			background-size: cover;
 			background-repeat: no-repeat;
 		}
@@ -114,7 +116,7 @@
 
 		#title,
 		#artist {
-			transition: opacity var(--refresh-time) ease-in-out;
+			transition: opacity var(--timeout-time) ease-in-out;
 		}
 
 		p,
@@ -131,7 +133,7 @@
 			width: 100%;
 			margin-top: 5px;
 			border-radius: 2px;
-			transition: background-color var(--refresh-time) ease-in-out;
+			transition: background-color var(--timeout-time) ease-in-out;
 		}
 
 		#progressbar {
@@ -235,11 +237,13 @@
 				alwaysBrightenColors: false,
 				centerText: true,
 				songRefresh: 200,
+				transitionTimeout: 500,
 				configRefresh: 200,
 				scrollTime: 8000,
 			},
 			Compact: {
 				progress: false,
+				progressBarBlend: 0,
 				borderSide: "down",
 				disableProgress: false,
 			},
@@ -409,54 +413,79 @@
 			});
 		}
 
-		async function updateCoverAndProgressColor(cover) {
-			if (!cover || cover === "") {
+		async function fetchWithCors(imageUrl) {
+			try {
+				const response = await fetch(imageUrl, {
+					mode: "cors", // Explicitly set CORS mode for anonymous requests
+					cache: "no-cache", // Prevent caching
+					headers: {
+						"Access-Control-Request-Method": "GET", // Required for preflight requests
+					},
+				});
+
+				const blob = await response.blob(); // Get the image data as a Blob
+
+				return { blob: blob, success: true };
+			} catch (e) {
+				// Most likely due to CORS, below is code for trying to get from original then secondaries
+				// console.warn("CORS error during image fetch:", imageUrl);
+				return { blob: null, success: false };
+			}
+		}
+
+		async function updateCoverAndProgressColor(coverUrls) {
+			var coverSuccess = false;
+			var blob;
+			for (let i = 0; i < coverUrls.length; i++) {
+				if (!coverUrls[i] || coverUrls[i] === "") {
+					continue;
+				} else {
+					response = await fetchWithCors(coverUrls[i]);
+					if (response.success) {
+						coverSuccess = true;
+						cover = coverUrls[i];
+						blob = response.blob;
+						break;
+					}
+				}
+			}
+			if (!coverSuccess) {
 				document.getElementById("cover").style.backgroundImage = `url(${placeholder})`;
 				return;
 			}
 
-			try {
-				const response = await fetch(cover);
-				if (!response.ok) {
-					throw new Error(`Failed to fetch image data: ${response.status}`);
-				}
-				const blob = await response.blob();
-				const reader = new FileReader();
+			const reader = new FileReader();
 
-				reader.onloadend = async () => {
-					if (reader.result) {
-						const base64Data = await encodeURIComponent(btoa(reader.result)); // Encode as base64 string
+			reader.onloadend = async () => {
+				if (reader.result) {
+					const base64Data = await encodeURIComponent(btoa(reader.result)); // Encode as base64 string
 
-						if (!lastCoverData || base64Data !== lastCoverData) {
-							// Update cover with cache busting
-							updateCover(`url(${cover}?${new Date().getTime()})`);
-							lastCoverData = base64Data;
+					if (!lastCoverData || base64Data !== lastCoverData) {
+						// Update cover with cache busting
+						updateCover(`url(${cover}?${new Date().getTime()})`);
+						lastCoverData = base64Data;
 
-							try {
-								const rgb = await getAverageBlobRGB(blob);
+						try {
+							const rgb = await getAverageBlobRGB(blob);
 
-								if ((calculate_brightness(rgb) < 0.6 && calculate_brightness(rgb) > 0.3) || config.Widget.alwaysBrightenColors) {
-									// Brighten dark colors
-									const brightenedRgb = increase_brightness(rgb, 100);
-									document.getElementById("progress").style.backgroundColor = `rgb(${brightenedRgb[0]}, ${brightenedRgb[1]}, ${brightenedRgb[2]})`;
-								} else {
-									document.getElementById("progress").style.backgroundColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-								}
-							} catch (error) {
-								console.error("Error fetching image colors:", error);
+							if ((calculate_brightness(rgb) < 0.6 && calculate_brightness(rgb) > 0.3) || config.Widget.alwaysBrightenColors) {
+								// Brighten dark colors
+								const brightenedRgb = increase_brightness(rgb, 100);
+								document.getElementById("progress").style.backgroundColor = `rgb(${brightenedRgb[0]}, ${brightenedRgb[1]}, ${brightenedRgb[2]})`;
+							} else {
+								document.getElementById("progress").style.backgroundColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 							}
+						} catch (error) {
+							console.error("Error fetching image colors:", error);
 						}
-					} else {
-						console.error("Failed to read image data.");
-						document.getElementById("cover").style.backgroundImage = `url(${placeholder})`;
 					}
-				};
+				} else {
+					console.error("Failed to read image data.");
+					document.getElementById("cover").style.backgroundImage = `url(${placeholder})`;
+				}
+			};
 
-				reader.readAsDataURL(blob);
-			} catch (error) {
-				console.error("Error fetching cover image data:", error);
-				document.getElementById("cover").style.backgroundImage = `url(${placeholder})`;
-			}
+			reader.readAsDataURL(blob);
 		}
 
 		function updateCover(cover) {
@@ -534,11 +563,7 @@
 					const data = await fetchData(); // Call your data fetching function
 					// Check for data changes
 					// Update UI elements based on the fetched data
-					if (!data.cover_url || data.cover_url == undefined) {
-						updateCoverAndProgressColor(data.cover);
-					} else {
-						updateCoverAndProgressColor(data.cover_url);
-					}
+					updateCoverAndProgressColor([data.cover, data.cover_path, data.cover_url, data.album_url]);
 					updateTitle(data.title);
 					updateArtistAndAlbum(data.artists, data.album);
 					updateProgress(data.duration, data.progress);
@@ -593,7 +618,7 @@
 
 				var bgcolor = rgba2hex(progress.style.backgroundColor);
 				var inbgcolor = invertColor(bgcolor.slice(0, -2)) + bgcolor.slice(-2);
-				var progwidth = progress.style.width;
+				var progwidth = Number(progress.style.width.replace("%", ""));
 
 				switch (config.Compact.borderSide) {
 					case "left":
@@ -615,7 +640,7 @@
 
 				widget.style = `
 				${borderDirection}: 4px solid !important;
-				border-image: linear-gradient(to right, ${bgcolor} 0%, ${inbgcolor} ${progwidth}) 10 !important;
+				border-image: linear-gradient(90deg, ${bgcolor} 0%, ${bgcolor} ${progwidth}%, ${inbgcolor} ${progwidth + config.Compact.progressBarBlend}%, ${inbgcolor} 100%) 10;
 				`;
 			} else {
 				document.querySelector("#widgetborder").style = "";
@@ -636,7 +661,7 @@
 
 			rootElement.style.setProperty("--border-color", config.Widget.border);
 
-			rootElement.style.setProperty("--refresh-time", `${config.Widget.songRefresh / 1000}s`);
+			rootElement.style.setProperty("--timeout-time", `${config.Widget.transitionTimeout / 1000}s`);
 
 			rootElement.style.setProperty("--scroll-time", `${config.Widget.scrollTime / 1000}s`);
 		}
@@ -719,7 +744,6 @@
 					element.classList.remove("marquee");
 				});
 			} else if (isOverflown && !hasMarquee) {
-				console.log(element.id);
 				element.style.opacity != 0 ? (element.style.opacity = 0) : "";
 				sleep(config.Widget.songRefresh).then(function () {
 					element.style.opacity != 1 ? (element.style.opacity = 1) : "";
