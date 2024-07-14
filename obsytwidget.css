@@ -7,20 +7,25 @@ body {
     overflow: hidden;
     padding-left: 10px;
     padding-right: 10px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .widget {
     /* Uncomment for background, I make a custom background in OBS for this because of transparency and shaders */
-    background-color: rgb(44, 44, 44);
+    /* background-color: rgb(44, 44, 44);
     border-radius: 4px;
     border-color: rgb(22, 22, 22);
-    box-shadow: 0px 0px 5px black;
+    box-shadow: 0px 0px 5px black; */
 
     padding: 8px;
-    height: 120px;
+    height: 250px;
     margin: 8px;
     position: relative;
     z-index: -2;
+    display: flex;
+    align-items: center;
 }
 
 #cover {
@@ -57,20 +62,22 @@ p, span {
 }
 
 #title,#titlebox {
-    font-size: x-large;
+    font-size: xxx-large;
     font-weight: bold;
     text-align: center;
+    display: inline;
 }
 
 #artist,#artistbox {
-    font-size: large;
+    font-size: xx-large;
     text-align: center;
+    display: inline;
 }
 
 #progressbar,
 #progress {
     background-color: gray;
-    height: 6px;
+    height: 25px;
     width: 100%;
     margin-top: 5px;
     border-radius: 2px;
@@ -86,10 +93,11 @@ p, span {
     background-color: rgb(223, 253, 179);
     width: 50%;
     position: absolute;
-    top: -80%;
+    top: -20%;
 }
 
 #timeline {
+    margin-top: 10px;
     display: grid;
     grid-template-columns: 1fr 20fr 1fr;
     align-items: center;
@@ -98,46 +106,20 @@ p, span {
 
 #length {
     margin-left: 5px;
-    font-size: medium;
+    font-size: x-large;
 }
 
 #time-passed {
     margin-right: 5px;
-    font-size: medium;
+    font-size: x-large;
 }
 
-.blue-neon-text {
+.blue-neon-text, #title {
     text-shadow: 0 0 7px cyan, 0 0 10px blue;
 }
-.red-neon-text {
+.red-neon-text, #artist {
     text-shadow: 0 0 7px red, 0 0 10px red;
 }
 .gold-neon-text {
     text-shadow: 0 0 7px yellow, 0 0 10px orange;
-}
-@keyframes bgColor {
-    12.5% {
-        background-color: #ff0000;
-    }
-    25% {
-        background-color: #ffa500;
-    }
-    37.5% {
-        background-color: #ffff00;
-    }
-    50% {
-        background-color: #7fff00;
-    }
-    62.5% {
-        background-color: #00ffff;
-    }
-    75% {
-        background-color: #0000ff;
-    }
-    87.5% {
-        background-color: #9932cc;
-    }
-    100% {
-        background-color: #ff1493;
-    }
 }
