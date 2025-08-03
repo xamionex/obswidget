@@ -1,0 +1,99 @@
+{
+  "Widget": {
+    "nothingPlayingText": "Nothing playing",
+    "tunaURL": "http://localhost:1608/",
+
+    // Should disable the corners on the widget?
+    // default=false
+    "disableCorners": false,
+
+    // Should disable the padding around the widget?
+    // default=false
+    "disablePadding": false,
+
+    // Should center the artist and title text?
+    // default=true
+    "centerText": true,
+
+    // How often to refresh song info? (In milliseconds)
+    // default=200
+    "songRefresh": 200,
+
+    // Transition timeouts, timeout between changing opacity to 0 and back to 1 and such
+    // default=500
+    "transitionTimeout": 500,
+
+    // How often to refresh config? (In milliseconds)
+    // default=5000
+    "configRefresh": 5000,
+
+    // How fast the text scrolls right to left when the title/album/artist text is too long (In milliseconds)
+    // default=8000
+    "scrollTime": 8000
+  },
+  "Compact": {
+    // Makes the progress bar compact, displaying as a line on the bottom of the overlay
+    // default=false
+    "progress": false,
+
+    // How much the compact progress bars colors blend together (---Album-color---/---Inverse-album-color---)
+    // default=0
+    // 0 = No blending, 1 = Very slight blending, 2 = Slight blending
+    "progressBarBlend": 0,
+
+    // Which sides should the border be on?
+    // default: only borderBottom=true
+    "borderTop": false,
+    "borderBottom": true,
+    "borderLeft": false,
+    "borderRight": false,
+
+    // Disable progress bar altogether
+    // default=false
+    "disableProgress": false
+  },
+  "Colors": {
+    // Background color of the widget
+    // Can also be set to "progress" to match the progress bar
+    // default=#2c2c2c
+    "background": "#2c2c2c",
+
+    // Color of the border on the widget
+    // default=#161616
+    "border": "#161616",
+
+    // Should always brighten image average color?
+    // default=false
+    "alwaysBrightenColors": false,
+
+    // Should the text have matching colors with the image?
+    // default=true
+    "matchingColors": true,
+
+    // Fallback progress bar colors when matchingColors=false
+    // These are used in place of the dynamic album colors
+
+    // Color of the text that says the title name (only when matchingColors is false)
+    // default=#ffffff
+    "titleColor": "#ffffff",
+
+    // Color of the text that says the artist name (only when matchingColors is false)
+    // default=#ffffff
+    "artistColor": "#ffffff",
+
+    // Color of the time text (only when matchingColors is false)
+    // default=#ffffff
+    "timeColor": "#ffffff",
+
+    // Color of shadow behind the text (only when matchingColors is false)
+    // default=#000000
+    "shadowColor": "#000000",
+
+    // Progress bar gradient colors
+    // default start and mid = #ffffff, blend and end = #000000
+    "progressStartColor": "#ffffff",
+    "progressMidColor": "#ffffff",
+    "progressBlendColor": "#000000",
+    "progressEndColor": "#000000"
+  }
+}
