@@ -12,6 +12,7 @@
   }
 
   #widget {
+    background-color: var(--background-color);
     overflow: hidden;
     border-radius: 4px;
     border-color: var(--border-color);
@@ -23,7 +24,6 @@
     position: relative;
   }
   #widgetborder {
-    background-color: var(--background-color);
     overflow: hidden;
 
     height: 250px;
@@ -620,16 +620,21 @@
   })();
 
   function configOptions() {
+    const widget = document.querySelector("#widget");
+    const widgetBorder = document.querySelector("#widgetborder");
+    const progress = document.querySelector("#progress");
+    const rootElement = document.documentElement;
+
     if (config.Widget.disableCorners) {
-      document.querySelector("#widget").style.borderRadius = "0px";
+      widget.style.borderRadius = "0px";
     } else {
-      document.querySelector("#widget").style.borderRadius = "";
+      widget.style.borderRadius = "";
     }
 
     if (config.Widget.disablePadding) {
-      document.querySelector("#widget").style.margin = "0px";
+      widget.style.margin = "0px";
     } else {
-      document.querySelector("#widget").style.margin = "";
+      widget.style.margin = "";
     }
 
     // make the timeline text 0:00 - 1:30 copy progress colors
@@ -648,30 +653,21 @@
     }
 
     if (config.Compact.progress && !config.Compact.disableProgress) {
-      var progress = document.querySelector("#progress");
-      var widget = document.querySelector("#widgetborder");
-
-      var bgcolor = rgba2hex(progress.style.backgroundColor);
-      var inbgcolor = invertColor(bgcolor.slice(0, -2)) + bgcolor.slice(-2);
-      var progwidth = Number(progress.style.width.replace("%", ""));
+      const bgcolor = rgba2hex(progress.style.backgroundColor);
+      const inbgcolor = invertColor(bgcolor.slice(0, -2)) + bgcolor.slice(-2);
+      const progwidth = Number(progress.style.width.replace("%", ""));
 
       let style = "";
 
-      // Add each border direction if it's set to true
-      if (config.Compact.borderTop) {
+      if (config.Compact.borderTop)
         style += "border-top: 4px solid !important;\n";
-      }
-      if (config.Compact.borderRight) {
+      if (config.Compact.borderRight)
         style += "border-right: 4px solid !important;\n";
-      }
-      if (config.Compact.borderBottom) {
+      if (config.Compact.borderBottom)
         style += "border-bottom: 4px solid !important;\n";
-      }
-      if (config.Compact.borderLeft) {
+      if (config.Compact.borderLeft)
         style += "border-left: 4px solid !important;\n";
-      }
 
-      // Add border-image as the final part
       if (config.Colors.matchingColors) {
         style += `border-image: linear-gradient(90deg, ${bgcolor} 0%, ${bgcolor} ${progwidth}%, ${inbgcolor} ${
           progwidth + config.Compact.progressBarBlend
@@ -686,10 +682,9 @@
         } 100%) 10;`;
       }
 
-      // Apply it to the widget
-      widget.style = style;
+      widgetBorder.style = style;
     } else {
-      document.querySelector("#widgetborder").style = "";
+      widgetBorder.style = "";
     }
 
     if (config.Widget.centerText) {
@@ -700,21 +695,38 @@
       document.querySelector("#artistbox").style = "";
     }
 
-    // set root colors from config
-    const rootElement = document.documentElement;
+    // Set background gradient or flat color
+    if (config.Colors.background === "progress") {
+      const bgcolor = rgba2hex(progress.style.backgroundColor);
+      const inbgcolor = invertColor(bgcolor.slice(0, -2)) + bgcolor.slice(-2);
+      const progwidth = Number(progress.style.width.replace("%", ""));
 
-    rootElement.style.setProperty(
-      "--background-color",
-      config.Colors.background
-    );
+      let backgroundStyle = "";
+
+      if (config.Colors.matchingColors) {
+        backgroundStyle = `linear-gradient(90deg, ${bgcolor} 0%, ${bgcolor} ${progwidth}%, ${inbgcolor} ${
+          progwidth + config.Compact.progressBarBlend
+        }%, ${inbgcolor} 100%)`;
+      } else {
+        backgroundStyle = `linear-gradient(90deg, ${
+          config.Colors.progressStartColor
+        } 0%, ${config.Colors.progressMidColor} ${progwidth}%, ${
+          config.Colors.progressBlendColor
+        } ${progwidth + config.Compact.progressBarBlend}%, ${
+          config.Colors.progressEndColor
+        } 100%)`;
+      }
+
+      widget.style.background = backgroundStyle;
+    } else {
+      widget.style.background = config.Colors.background;
+    }
 
     rootElement.style.setProperty("--border-color", config.Colors.border);
-
     rootElement.style.setProperty(
       "--timeout-time",
       `${config.Widget.transitionTimeout / 1000}s`
     );
-
     rootElement.style.setProperty(
       "--scroll-time",
       `${config.Widget.scrollTime / 1000}s`
