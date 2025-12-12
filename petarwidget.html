@@ -23,6 +23,7 @@
 
     position: relative;
   }
+
   #widgetborder {
     overflow: hidden;
 
@@ -103,9 +104,11 @@
     background-clip: text;
     color: transparent;
   }
+
   #titlebox {
     font-size: 4rem;
   }
+
   #artistbox {
     font-size: 3rem;
     margin-bottom: 20px;
@@ -162,9 +165,11 @@
   .blue-neon-text {
     text-shadow: 0 0 7px cyan, 0 0 10px blue;
   }
+
   .red-neon-text {
     text-shadow: 0 0 7px red, 0 0 10px red;
   }
+
   .gold-neon-text {
     text-shadow: 0 0 7px yellow, 0 0 10px orange;
   }
@@ -177,6 +182,7 @@
     from {
       transform: translateX(105%);
     }
+
     to {
       transform: translateX(-110%);
     }
@@ -404,7 +410,8 @@
   }
 
   function updateArtistAndAlbum(artists, album) {
-    const formattedArtists = artists.join(", ") || []; // Join artists with commas
+    if (artists == null) artists = ["Unknown Artist"]
+    const formattedArtists = artists.join(", "); // Join artists with commas
 
     const artistChanged = lastArtist !== formattedArtists;
     const albumChanged = lastAlbum !== album;
@@ -669,17 +676,9 @@
         style += "border-left: 4px solid !important;\n";
 
       if (config.Colors.matchingColors) {
-        style += `border-image: linear-gradient(90deg, ${bgcolor} 0%, ${bgcolor} ${progwidth}%, ${inbgcolor} ${
-          progwidth + config.Compact.progressBarBlend
-        }%, ${inbgcolor} 100%) 10;`;
+        style += `border-image: linear-gradient(90deg, ${bgcolor} 0%, ${bgcolor} ${progwidth}%, ${inbgcolor} ${progwidth + config.Compact.progressBarBlend}%, ${inbgcolor} 100%) 10;`;
       } else {
-        style += `border-image: linear-gradient(90deg, ${
-          config.Colors.progressStartColor
-        } 0%, ${config.Colors.progressMidColor} ${progwidth}%, ${
-          config.Colors.progressBlendColor
-        } ${progwidth + config.Compact.progressBarBlend}%, ${
-          config.Colors.progressEndColor
-        } 100%) 10;`;
+        style += `border-image: linear-gradient(90deg, ${config.Colors.progressStartColor} 0%, ${config.Colors.progressMidColor} ${progwidth}%, ${config.Colors.progressBlendColor} ${progwidth + config.Compact.progressBarBlend}%, ${config.Colors.progressEndColor} 100%) 10;`;
       }
 
       widgetBorder.style = style;
@@ -704,17 +703,9 @@
       let backgroundStyle = "";
 
       if (config.Colors.matchingColors) {
-        backgroundStyle = `linear-gradient(90deg, ${bgcolor} 0%, ${bgcolor} ${progwidth}%, ${inbgcolor} ${
-          progwidth + config.Compact.progressBarBlend
-        }%, ${inbgcolor} 100%)`;
+        backgroundStyle = `linear-gradient(90deg, ${bgcolor} 0%, ${bgcolor} ${progwidth}%, ${inbgcolor} ${progwidth + config.Compact.progressBarBlend}%, ${inbgcolor} 100%)`;
       } else {
-        backgroundStyle = `linear-gradient(90deg, ${
-          config.Colors.progressStartColor
-        } 0%, ${config.Colors.progressMidColor} ${progwidth}%, ${
-          config.Colors.progressBlendColor
-        } ${progwidth + config.Compact.progressBarBlend}%, ${
-          config.Colors.progressEndColor
-        } 100%)`;
+        backgroundStyle = `linear-gradient(90deg, ${config.Colors.progressStartColor} 0%, ${config.Colors.progressMidColor} ${progwidth}%, ${config.Colors.progressBlendColor} ${progwidth + config.Compact.progressBarBlend}%, ${config.Colors.progressEndColor} 100%)`;
       }
 
       widget.style.background = backgroundStyle;
@@ -865,8 +856,8 @@
       alpha = ((rgb && rgb[4]) || "").trim(),
       hex = rgb
         ? (rgb[1] | (1 << 8)).toString(16).slice(1) +
-          (rgb[2] | (1 << 8)).toString(16).slice(1) +
-          (rgb[3] | (1 << 8)).toString(16).slice(1)
+        (rgb[2] | (1 << 8)).toString(16).slice(1) +
+        (rgb[3] | (1 << 8)).toString(16).slice(1)
         : orig;
 
     if (alpha !== "") {
@@ -910,39 +901,42 @@
   }
 </script>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Widget</title>
-  </head>
-  <body>
-    <div id="widget">
-      <div id="widgetborder">
-        <div id="image-box">
-          <div id="cover"></div>
-          <div id="next-cover"></div>
-          <div id="image-box-shadow">&nbsp;</div>
-        </div>
-        <div id="info">
-          <span id="titlebox">
-            <span id="title">&nbsp;</span>
-          </span>
-          <span id="artistbox">
-            <span id="artist">&nbsp;</span>
-          </span>
-          <div id="timeline">
-            <div>
-              <p id="time-passed">0:00</p>
-            </div>
-            <div id="progressbar">
-              <div id="progress"></div>
-            </div>
-            <div>
-              <p id="length">0:00</p>
-            </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Widget</title>
+</head>
+
+<body>
+  <div id="widget">
+    <div id="widgetborder">
+      <div id="image-box">
+        <div id="cover"></div>
+        <div id="next-cover"></div>
+        <div id="image-box-shadow">&nbsp;</div>
+      </div>
+      <div id="info">
+        <span id="titlebox">
+          <span id="title">&nbsp;</span>
+        </span>
+        <span id="artistbox">
+          <span id="artist">&nbsp;</span>
+        </span>
+        <div id="timeline">
+          <div>
+            <p id="time-passed">0:00</p>
+          </div>
+          <div id="progressbar">
+            <div id="progress"></div>
+          </div>
+          <div>
+            <p id="length">0:00</p>
           </div>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
